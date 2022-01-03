@@ -13,6 +13,9 @@ contract ERC4341 {
     // Mappring from account to phrases by phraseId
     mapping(address => mapping(uint256 => uint256[]) private _phrases;
 
+    // Mappring from account to phrase counts
+    mapping(address => uint256) private _phraseCounts;
+
     /**
      * @dev See {_setURI}.
      */
@@ -35,7 +38,7 @@ contract ERC4341 {
 
     function balanceOfPhrases(address account) public view virtual override returns (uint256) {
         require(account != address(0), "ERC4341: balance query for the zero address");
-        return _phrases[account];
+        return _phraseCounts[account];
     }
 
     /**
@@ -83,55 +86,20 @@ contract ERC4341 {
         return _operatorApprovals[account][operator];
     }
 
-    /**
-     * @dev See {IERC1155-safeTransferFrom}.
-     */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    )
-        public
-        virtual
-        override
-    {
-        require(to != address(0), "ERC4341: transfer to the zero address");
-        require(
-            from == _msgSender() || isApprovedForAll(from, _msgSender()),
-            "ERC1155: caller is not owner nor approved"
-        );
-
-        address operator = _msgSender();
-
-        _beforeTokenTransfer(operator, from, to, _asSingletonArray(id), _asSingletonArray(amount), data);
-
-        uint256 fromBalance = _balances[id][from];
-        require(fromBalance >= amount, "ERC4341: insufficient balance for transfer");
-        _balances[id][from] = fromBalance - amount;
-        _balances[id][to] += amount;
-
-        emit TransferSingle(operator, from, to, id, amount);
-
-        _doSafeTransferAcceptanceCheck(operator, from, to, id, amount, data);
-    }
 
     /**
-     * @dev See {IERC1155-safeBatchTransferFrom}.
+     * @dev See {IERC4341-safeBatchTransferFrom}.
      */
     function safeBatchTransferFrom(
         address from,
         address to,
         uint256[] memory ids,
-        uint256[] memory amounts,
         bytes memory data
     )
         public
         virtual
         override
     {
-        require(ids.length == amounts.length, "ERC4341: ids and amounts length mismatch");
         require(to != address(0), "ERC4341: transfer to the zero address");
         require(
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
@@ -140,7 +108,7 @@ contract ERC4341 {
 
         address operator = _msgSender();
 
-        _beforeTokenTransfer(operator, from, to, ids, amounts, data);
+        _beforeTokenTransfer(operator, from, to, ids, data);
 
         for (uint256 i = 0; i < ids.length; ++i) {
             uint256 id = ids[i];
@@ -152,9 +120,13 @@ contract ERC4341 {
             _balances[id][to] += amount;
         }
 
-        emit TransferBatch(operator, from, to, ids, amounts);
+        uint256 nextPid = _phraseCounts[to] + 1;
+        _phrases[to][nextPid] = ids;
+        _phraseCounts[to] = nextPid;
 
-        _doSafeBatchTransferAcceptanceCheck(operator, from, to, ids, amounts, data);
+        emit TransferBatch(operator, from, to, ids);
+
+        _doSafeBatchTransferAcceptanceCheck(operator, from, to, ids, data);
     }
 
     /**
@@ -253,7 +225,7 @@ contract ERC4341 {
             _balances[id][account] = accountBalance - amount;
         }
 
-        emit TransferBatch(operator, account, address(0), ids, amounts);
+        emit TransferBatch(operator, account, address(0), ids);
     }
 
     /**
@@ -281,7 +253,6 @@ contract ERC4341 {
         address from,
         address to,
         uint256[] memory ids,
-        uint256[] memory amounts,
         bytes memory data
     )
         internal
@@ -316,20 +287,19 @@ contract ERC4341 {
         address from,
         address to,
         uint256[] memory ids,
-        uint256[] memory amounts,
         bytes memory data
     )
         private
     {
         if (to.isContract()) {
-            try IERC1155Receiver(to).onERC1155BatchReceived(operator, from, ids, amounts, data) returns (bytes4 response) {
-                if (response != IERC1155Receiver(to).onERC1155BatchReceived.selector) {
-                    revert("ERC4341: ERC1155Receiver rejected tokens");
+            try IERC4341Receiver(to).onERC4341BatchReceived(operator, from, ids, data) returns (bytes4 response) {
+                if (response != IERC4341Receiver(to).onERC4341BatchReceived.selector) {
+                    revert("ERC4341: ERC4341Receiver rejected tokens");
                 }
             } catch Error(string memory reason) {
                 revert(reason);
             } catch {
-                revert("ERC4341: transfer to non ERC1155Receiver implementer");
+                revert("ERC4341: transfer to non ERC4341Receiver implementer");
             }
         }
     }
