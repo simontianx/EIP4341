@@ -1,4 +1,4 @@
-# ERC4341 Ordered NFT Batch Standard
+# EIP-4341 Ordered NFT Batch Standard
 This standard introduces a smart contract interface that can represent a batch
 of non-fungible tokens of which the ordering information shall be retained and
 managed. Such information is particularly useful if `tokenId`s are encoded with
