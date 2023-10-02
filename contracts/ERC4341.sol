@@ -29,8 +29,14 @@ contract ERC4341 is IERC4341, Ownable {
      *
      * - `account` cannot be the zero address.
      */
-    function balanceOf(address account, uint256 id) public view virtual override returns (uint256) {
-        require(account != address(0), "ERC4341: balance query for the zero address");
+    function balanceOf(
+        address account,
+        uint256 id
+    ) public view virtual override returns (uint256) {
+        require(
+            account != address(0),
+            "ERC4341: balance query for the zero address"
+        );
         return _balances[id][account];
     }
 
@@ -41,8 +47,13 @@ contract ERC4341 is IERC4341, Ownable {
      *
      * - `account` cannot be the zero address.
      */
-    function balanceOfPhrase(address account) public view virtual override returns (uint256) {
-        require(account != address(0), "ERC4341: balance query for the zero address");
+    function balanceOfPhrase(
+        address account
+    ) public view virtual override returns (uint256) {
+        require(
+            account != address(0),
+            "ERC4341: balance query for the zero address"
+        );
         return _phraseCounts[account];
     }
 
@@ -56,14 +67,11 @@ contract ERC4341 is IERC4341, Ownable {
     function balanceOfBatch(
         address[] memory accounts,
         uint256[] memory ids
-    )
-        public
-        view
-        virtual
-        override
-        returns (uint256[] memory)
-    {
-        require(accounts.length == ids.length, "ERC4341: accounts and ids length mismatch");
+    ) public view virtual override returns (uint256[] memory) {
+        require(
+            accounts.length == ids.length,
+            "ERC4341: accounts and ids length mismatch"
+        );
 
         uint256[] memory batchBalances = new uint256[](accounts.length);
 
@@ -77,8 +85,14 @@ contract ERC4341 is IERC4341, Ownable {
     /**
      * @dev See {IERC4341-setApprovalForAll}.
      */
-    function setApprovalForAll(address operator, bool approved) public virtual override {
-        require(_msgSender() != operator, "ERC4341: setting approval status for self");
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    ) public virtual override {
+        require(
+            _msgSender() != operator,
+            "ERC4341: setting approval status for self"
+        );
 
         _operatorApprovals[_msgSender()][operator] = approved;
         emit ApprovalForAll(_msgSender(), operator, approved);
@@ -87,7 +101,10 @@ contract ERC4341 is IERC4341, Ownable {
     /**
      * @dev See {IERC4341-isApprovedForAll}.
      */
-    function isApprovedForAll(address account, address operator) public view virtual override returns (bool) {
+    function isApprovedForAll(
+        address account,
+        address operator
+    ) public view virtual override returns (bool) {
         return _operatorApprovals[account][operator];
     }
 
@@ -117,11 +134,7 @@ contract ERC4341 is IERC4341, Ownable {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    )
-        public
-        virtual
-        override
-    {
+    ) public virtual override {
         require(to != address(0), "ERC4341: transfer to the zero address");
         require(
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
@@ -135,7 +148,10 @@ contract ERC4341 is IERC4341, Ownable {
             uint256 amount = amounts[i];
 
             uint256 fromBalance = _balances[id][from];
-            require(fromBalance >= amount, "ERC4341: insufficient balance for transfer");
+            require(
+                fromBalance >= amount,
+                "ERC4341: insufficient balance for transfer"
+            );
             _balances[id][from] = fromBalance - amount;
             _balances[id][to] += amount;
         }
@@ -153,11 +169,7 @@ contract ERC4341 is IERC4341, Ownable {
         address to,
         uint256[] memory phrase,
         bytes memory data
-    )
-        public
-        virtual
-        override
-    {
+    ) public virtual override {
         require(to != address(0), "ERC4341: transfer to the zero address");
         require(
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
@@ -178,19 +190,22 @@ contract ERC4341 is IERC4341, Ownable {
 
         emit TransferBatch(from, to, phrase, _asSingletonArray(1));
 
-        _doSafeBatchTransferAcceptanceCheck(from, to, phrase, _asSingletonArray(1), data);
+        _doSafeBatchTransferAcceptanceCheck(
+            from,
+            to,
+            phrase,
+            _asSingletonArray(1),
+            data
+        );
     }
 
     /**
      * @dev See {IERC4341-retrievePhrase}.
      */
-    function retrievePhrase(address owner, uint256 phraseId)
-        public
-        virtual
-        override
-        view
-        returns (uint256[] memory)
-    {
+    function retrievePhrase(
+        address owner,
+        uint256 phraseId
+    ) public view virtual override returns (uint256[] memory) {
         return _phrases[owner][phraseId];
     }
 
@@ -215,10 +230,19 @@ contract ERC4341 is IERC4341, Ownable {
     ) internal virtual {
         require(to != address(0), "ERC4341: transfer to the zero address");
 
-        _beforeTokenTransfer(from, to, _asSingletonArray(id), _asSingletonArray(amount), data);
+        _beforeTokenTransfer(
+            from,
+            to,
+            _asSingletonArray(id),
+            _asSingletonArray(amount),
+            data
+        );
 
         uint256 fromBalance = _balances[id][from];
-        require(fromBalance >= amount, "ERC4341: insufficient balance for transfer");
+        require(
+            fromBalance >= amount,
+            "ERC4341: insufficient balance for transfer"
+        );
         unchecked {
             _balances[id][from] = fromBalance - amount;
         }
@@ -240,10 +264,21 @@ contract ERC4341 is IERC4341, Ownable {
      * - If `account` refers to a smart contract, it must implement {IERC4341Receiver-onERC4341Received} and return the
      * acceptance magic value.
      */
-    function _mint(address account, uint256 id, uint256 amount, bytes memory data) internal virtual {
+    function _mint(
+        address account,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) internal virtual {
         require(account != address(0), "ERC4341: mint to the zero address");
 
-        _beforeTokenTransfer(address(0), account, _asSingletonArray(id), _asSingletonArray(amount), data);
+        _beforeTokenTransfer(
+            address(0),
+            account,
+            _asSingletonArray(id),
+            _asSingletonArray(amount),
+            data
+        );
 
         _balances[id][account] += amount;
         emit Transfer(address(0), account, id, amount);
@@ -260,9 +295,17 @@ contract ERC4341 is IERC4341, Ownable {
      * - If `to` refers to a smart contract, it must implement {IERC4341Receiver-onERC4341BatchReceived} and return the
      * acceptance magic value.
      */
-    function _mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data) internal virtual {
+    function _mintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal virtual {
         require(to != address(0), "ERC4341: mint to the zero address");
-        require(ids.length == amounts.length, "ERC4341: ids and amounts length mismatch");
+        require(
+            ids.length == amounts.length,
+            "ERC4341: ids and amounts length mismatch"
+        );
 
         _beforeTokenTransfer(address(0), to, ids, amounts, data);
 
@@ -283,13 +326,26 @@ contract ERC4341 is IERC4341, Ownable {
      * - `account` cannot be the zero address.
      * - `account` must have at least `amount` tokens of token type `id`.
      */
-    function _burn(address account, uint256 id, uint256 amount) internal virtual {
+    function _burn(
+        address account,
+        uint256 id,
+        uint256 amount
+    ) internal virtual {
         require(account != address(0), "ERC4341: burn from the zero address");
 
-        _beforeTokenTransfer(account, address(0), _asSingletonArray(id), _asSingletonArray(amount), "");
+        _beforeTokenTransfer(
+            account,
+            address(0),
+            _asSingletonArray(id),
+            _asSingletonArray(amount),
+            ""
+        );
 
         uint256 accountBalance = _balances[id][account];
-        require(accountBalance >= amount, "ERC4341: burn amount exceeds balance");
+        require(
+            accountBalance >= amount,
+            "ERC4341: burn amount exceeds balance"
+        );
         _balances[id][account] = accountBalance - amount;
 
         emit Transfer(account, address(0), id, amount);
@@ -302,9 +358,16 @@ contract ERC4341 is IERC4341, Ownable {
      *
      * - `ids` and `amounts` must have the same length.
      */
-    function _burnBatch(address account, uint256[] memory ids, uint256[] memory amounts) internal virtual {
+    function _burnBatch(
+        address account,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) internal virtual {
         require(account != address(0), "ERC4341: burn from the zero address");
-        require(ids.length == amounts.length, "ERC4341: ids and amounts length mismatch");
+        require(
+            ids.length == amounts.length,
+            "ERC4341: ids and amounts length mismatch"
+        );
 
         _beforeTokenTransfer(account, address(0), ids, amounts, "");
 
@@ -313,7 +376,10 @@ contract ERC4341 is IERC4341, Ownable {
             uint256 amount = amounts[i];
 
             uint256 accountBalance = _balances[id][account];
-            require(accountBalance >= amount, "ERC4341: burn amount exceeds balance");
+            require(
+                accountBalance >= amount,
+                "ERC4341: burn amount exceeds balance"
+            );
             _balances[id][account] = accountBalance - amount;
         }
 
@@ -346,10 +412,7 @@ contract ERC4341 is IERC4341, Ownable {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    )
-        internal
-        virtual
-    { }
+    ) internal virtual {}
 
     function _doSafeTransferAcceptanceCheck(
         address from,
@@ -357,12 +420,14 @@ contract ERC4341 is IERC4341, Ownable {
         uint256 id,
         uint256 amount,
         bytes memory data
-    )
-        private
-    {
+    ) private {
         if (to.isContract()) {
-            try IERC4341Receiver(to).onERC4341Received(from, id, amount, data) returns (bytes4 response) {
-                if (response != IERC4341Receiver(to).onERC4341Received.selector) {
+            try
+                IERC4341Receiver(to).onERC4341Received(from, id, amount, data)
+            returns (bytes4 response) {
+                if (
+                    response != IERC4341Receiver(to).onERC4341Received.selector
+                ) {
                     revert("ERC4341: ERC4341Receiver rejected tokens");
                 }
             } catch Error(string memory reason) {
@@ -379,12 +444,20 @@ contract ERC4341 is IERC4341, Ownable {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    )
-        private
-    {
+    ) private {
         if (to.isContract()) {
-            try IERC4341Receiver(to).onERC4341BatchReceived(from, ids, amounts, data) returns (bytes4 response) {
-                if (response != IERC4341Receiver(to).onERC4341BatchReceived.selector) {
+            try
+                IERC4341Receiver(to).onERC4341BatchReceived(
+                    from,
+                    ids,
+                    amounts,
+                    data
+                )
+            returns (bytes4 response) {
+                if (
+                    response !=
+                    IERC4341Receiver(to).onERC4341BatchReceived.selector
+                ) {
                     revert("ERC4341: ERC4341Receiver rejected tokens");
                 }
             } catch Error(string memory reason) {
@@ -395,7 +468,9 @@ contract ERC4341 is IERC4341, Ownable {
         }
     }
 
-    function _asSingletonArray(uint256 element) private pure returns (uint256[] memory) {
+    function _asSingletonArray(
+        uint256 element
+    ) private pure returns (uint256[] memory) {
         uint256[] memory array = new uint256[](1);
         array[0] = element;
 
